@@ -1,0 +1,24 @@
+version: '3.1'
+
+services:
+  postgresql:
+    image: bitnami/postgresql
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRESQL_DATABASE=bitnami_keycloak
+      - POSTGRESQL_USERNAME=bn_keycloak
+      - POSTGRESQL_PASSWORD=bn_keycloak
+    volumes:
+      - './postgresql:/bitnami/postgresql'
+
+  keycloak:
+    image: bitnami/keycloak:latest
+    ports:
+      - 8180:8080
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KEYCLOAK_DATABASE_PASSWORD=bn_keycloak
+    depends_on:
+      - postgresql
