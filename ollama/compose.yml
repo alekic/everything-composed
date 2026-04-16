@@ -1,0 +1,45 @@
+services:
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+    # --- GPU access (uncomment ONE of the blocks below) ---
+
+    # Docker + NVIDIA Container Toolkit:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+    # Podman + CDI (Container Device Interface):
+    # devices:
+    #   - nvidia.com/gpu=all
+
+  model-puller:
+    image: ollama/ollama
+    container_name: ollama-model-puller
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+      - MODEL=${MODEL:-qwen2.5-coder:7b}
+    entrypoint: ["sh", "-c", "echo \"Pulling model: $$MODEL\" && ollama pull \"$$MODEL\" && echo Done."]
+    restart: "no"
+
+volumes:
+  ollama_data:
